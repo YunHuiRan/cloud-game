@@ -12,7 +12,7 @@ namespace Ludens.Views
 {
     public sealed class CalendarDay
     {
-        public int DayNumber { get; set; }
+        public string DayNumber { get; set; }
         public double CellOpacity { get; set; }
         public Brush Fill { get; set; }
         public Brush BorderBrush { get; set; }
@@ -23,6 +23,7 @@ namespace Ludens.Views
     public partial class DetailView : UserControl
     {
         private GameEntry _game;
+        private DateTime _calendarMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
 
         public event EventHandler CloseRequested;
         public event EventHandler<GameActionEventArgs> PlayRequested;
@@ -46,6 +47,7 @@ namespace Ludens.Views
         public void Open(GameEntry game)
         {
             _game = game;
+            _calendarMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
             DataContext = game;
             Refresh();
             Root.Opacity = 1;
@@ -111,7 +113,7 @@ namespace Ludens.Views
                 PlayLabel.Text = "开始游戏";
             }
             LastPlayedText.Text = _game.LastPlayedDisplay;
-            CoverPlaytime.Text = _game.PlaytimeLongDisplay;
+            TotalPlaytimeText.Text = _game.PlaytimeLongDisplay;
             BuildCalendar();
         }
 
@@ -135,21 +137,22 @@ namespace Ludens.Views
             }
 
             DateTime today = DateTime.Today;
-            DateTime monday = today.AddDays(-(((int)today.DayOfWeek + 6) % 7));
-            DateTime start = monday.AddDays(-77);
-            List<CalendarDay> days = new List<CalendarDay>(84);
+            DateTime first = new DateTime(_calendarMonth.Year, _calendarMonth.Month, 1);
+            int offset = ((int)first.DayOfWeek + 6) % 7;
+            List<CalendarDay> days = new List<CalendarDay>(42);
             long totalSeconds = 0;
 
-            for (int i = 0; i < 84; i++)
+            for (int i = 0; i < 42; i++)
             {
-                DateTime date = start.AddDays(i);
-                long seconds;
-                totals.TryGetValue(date, out seconds);
+                DateTime date = first.AddDays(i - offset);
+                bool inMonth = date.Month == first.Month && date.Year == first.Year;
+                long seconds = 0;
+                if (inMonth) totals.TryGetValue(date, out seconds);
                 if (seconds < 0) seconds = 0;
-                totalSeconds += seconds;
+                if (inMonth) totalSeconds += seconds;
 
                 bool future = date > today;
-                double intensity = future ? 0 : Intensity(seconds);
+                double intensity = inMonth && !future ? Intensity(seconds) : 0;
                 Color accent = ThemeManager.AccentColor;
                 Brush fill = intensity <= 0
                     ? Brushes.Transparent
@@ -157,30 +160,50 @@ namespace Ludens.Views
                 Brush text = intensity >= 0.52
                     ? ThemeManager.Brush("AccentForeground")
                     : ThemeManager.Brush("TextMuted");
-                Brush border = date == today
+                Brush border = inMonth && date == today
                     ? ThemeManager.Brush("Accent")
-                    : ThemeManager.Brush("Border");
+                    : (inMonth ? ThemeManager.Brush("Border") : Brushes.Transparent);
 
                 string label = date.ToString("yyyy年M月d日 dddd");
                 string detail;
-                if (future) detail = "尚未到来";
+                if (!inMonth) detail = string.Empty;
+                else if (future) detail = "尚未到来";
                 else if (seconds <= 0) detail = "无游玩记录";
                 else detail = "游玩 " + GameEntry.FormatDuration(seconds);
 
                 days.Add(new CalendarDay
                 {
-                    DayNumber = date.Day,
-                    CellOpacity = future ? 0.32 : 1.0,
+                    DayNumber = inMonth ? date.Day.ToString() : string.Empty,
+                    CellOpacity = inMonth ? (future ? 0.38 : 1.0) : 0.0,
                     Fill = fill,
                     BorderBrush = border,
                     TextBrush = text,
-                    Tooltip = label + "\n" + detail
+                    Tooltip = inMonth ? label + "\n" + detail : null
                 });
             }
 
             CalendarDays.ItemsSource = days;
-            CalendarRangeText.Text = start.ToString("yyyy年M月d日") + " — " + monday.AddDays(6).ToString("M月d日");
-            CalendarSummaryText.Text = "最近 12 周 · 共 " + GameEntry.FormatDuration(totalSeconds);
+            CalendarRangeText.Text = first.ToString("yyyy年M月");
+            CalendarSummaryText.Text = "本月 · 共 " + GameEntry.FormatDuration(totalSeconds);
+
+            DateTime currentMonth = new DateTime(today.Year, today.Month, 1);
+            NextMonthButton.IsEnabled = first < currentMonth;
+        }
+
+        private void PrevMonth_Click(object sender, RoutedEventArgs e)
+        {
+            _calendarMonth = _calendarMonth.AddMonths(-1);
+            BuildCalendar();
+        }
+
+        private void NextMonth_Click(object sender, RoutedEventArgs e)
+        {
+            DateTime currentMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+            if (_calendarMonth < currentMonth)
+            {
+                _calendarMonth = _calendarMonth.AddMonths(1);
+                BuildCalendar();
+            }
         }
 
         private static double Intensity(long seconds)
