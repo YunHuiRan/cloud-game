@@ -13,11 +13,21 @@ namespace Ludens.Views
     public sealed class CalendarDay
     {
         public string DayNumber { get; set; }
+        public string DurationText { get; set; }
+        public Visibility DurationVisibility { get; set; }
         public double CellOpacity { get; set; }
         public Brush Fill { get; set; }
         public Brush BorderBrush { get; set; }
         public Brush TextBrush { get; set; }
         public string Tooltip { get; set; }
+    }
+
+    public sealed class RecentDay
+    {
+        public string DateDisplay { get; set; }
+        public string WeekdayDisplay { get; set; }
+        public string DurationDisplay { get; set; }
+        public double BarWidth { get; set; }
     }
 
     public partial class DetailView : UserControl
@@ -36,7 +46,11 @@ namespace Ludens.Views
             InitializeComponent();
             IsVisibleChanged += delegate
             {
-                if (IsVisible && _game != null) BuildCalendar();
+                if (IsVisible && _game != null)
+                {
+                    BuildCalendar();
+                    BuildRecentDays();
+                }
             };
         }
 
@@ -71,11 +85,7 @@ namespace Ludens.Views
             LogoImage.Source = logo;
             LogoImage.Visibility = logo == null ? Visibility.Collapsed : Visibility.Visible;
 
-            SessionsList.ItemsSource = _game.Sessions.Take(8).ToList();
-            SessionCountText.Text = _game.Sessions.Count.ToString();
-            bool hasSessions = _game.Sessions.Count > 0;
-            SessionsList.Visibility = hasSessions ? Visibility.Visible : Visibility.Collapsed;
-            EmptySessions.Visibility = hasSessions ? Visibility.Collapsed : Visibility.Visible;
+            BuildRecentDays();
 
             bool hasDescription = !string.IsNullOrWhiteSpace(_game.Description);
             DescriptionText.Visibility = hasDescription ? Visibility.Visible : Visibility.Collapsed;
@@ -115,26 +125,14 @@ namespace Ludens.Views
             LastPlayedText.Text = _game.LastPlayedDisplay;
             TotalPlaytimeText.Text = _game.PlaytimeLongDisplay;
             BuildCalendar();
+            BuildRecentDays();
         }
 
         private void BuildCalendar()
         {
             if (_game == null || CalendarDays == null) return;
 
-            Dictionary<DateTime, long> totals = new Dictionary<DateTime, long>();
-            if (_game.Sessions != null)
-            {
-                for (int i = 0; i < _game.Sessions.Count; i++)
-                {
-                    PlaySession session = _game.Sessions[i];
-                    if (session == null) continue;
-                    AddSessionSeconds(totals, session.StartUtc, session.EndUtc, session.Seconds);
-                }
-            }
-            if (_game.IsRunning && _game.ActiveSessionStartUtc.HasValue)
-            {
-                AddSessionSeconds(totals, _game.ActiveSessionStartUtc.Value, DateTime.UtcNow, 0);
-            }
+            Dictionary<DateTime, long> totals = BuildDailyTotals();
 
             DateTime today = DateTime.Today;
             DateTime first = new DateTime(_calendarMonth.Year, _calendarMonth.Month, 1);
@@ -159,10 +157,11 @@ namespace Ludens.Views
                     : new SolidColorBrush(Color.FromArgb((byte)Math.Round(255 * intensity), accent.R, accent.G, accent.B));
                 Brush text = intensity >= 0.52
                     ? ThemeManager.Brush("AccentForeground")
-                    : ThemeManager.Brush("TextMuted");
+                    : ThemeManager.Brush("TextPrimary");
                 Brush border = inMonth && date == today
                     ? ThemeManager.Brush("Accent")
-                    : (inMonth ? ThemeManager.Brush("Border") : Brushes.Transparent);
+                    : (inMonth ? ThemeManager.Brush("BorderStrong") : Brushes.Transparent);
+                string durationText = inMonth && seconds > 0 ? GameEntry.FormatDuration(seconds) : string.Empty;
 
                 string label = date.ToString("yyyy年M月d日 dddd");
                 string detail;
@@ -174,7 +173,9 @@ namespace Ludens.Views
                 days.Add(new CalendarDay
                 {
                     DayNumber = inMonth ? date.Day.ToString() : string.Empty,
-                    CellOpacity = inMonth ? (future ? 0.38 : 1.0) : 0.0,
+                    DurationText = durationText,
+                    DurationVisibility = string.IsNullOrEmpty(durationText) ? Visibility.Collapsed : Visibility.Visible,
+                    CellOpacity = inMonth ? (future ? 0.45 : 1.0) : 0.0,
                     Fill = fill,
                     BorderBrush = border,
                     TextBrush = text,
@@ -188,6 +189,61 @@ namespace Ludens.Views
 
             DateTime currentMonth = new DateTime(today.Year, today.Month, 1);
             NextMonthButton.IsEnabled = first < currentMonth;
+        }
+
+        private Dictionary<DateTime, long> BuildDailyTotals()
+        {
+            Dictionary<DateTime, long> totals = new Dictionary<DateTime, long>();
+            if (_game == null) return totals;
+
+            if (_game.Sessions != null)
+            {
+                for (int i = 0; i < _game.Sessions.Count; i++)
+                {
+                    PlaySession session = _game.Sessions[i];
+                    if (session == null) continue;
+                    AddSessionSeconds(totals, session.StartUtc, session.EndUtc, session.Seconds);
+                }
+            }
+            if (_game.IsRunning && _game.ActiveSessionStartUtc.HasValue)
+                AddSessionSeconds(totals, _game.ActiveSessionStartUtc.Value, DateTime.UtcNow, 0);
+            return totals;
+        }
+
+        private void BuildRecentDays()
+        {
+            if (_game == null || SessionsList == null) return;
+
+            Dictionary<DateTime, long> totals = BuildDailyTotals();
+            DateTime today = DateTime.Today;
+            long maxSeconds = 0;
+            for (int i = 0; i < 10; i++)
+            {
+                long seconds;
+                if (totals.TryGetValue(today.AddDays(-i), out seconds) && seconds > maxSeconds)
+                    maxSeconds = seconds;
+            }
+
+            string[] weekdays = { "日", "一", "二", "三", "四", "五", "六" };
+            List<RecentDay> rows = new List<RecentDay>(10);
+            for (int i = 0; i < 10; i++)
+            {
+                DateTime date = today.AddDays(-i);
+                long seconds;
+                totals.TryGetValue(date, out seconds);
+                double width = seconds > 0 && maxSeconds > 0
+                    ? Math.Max(4, 520.0 * seconds / maxSeconds)
+                    : 0;
+
+                rows.Add(new RecentDay
+                {
+                    DateDisplay = i == 0 ? "今天" : (i == 1 ? "昨天" : date.ToString("M月d日")),
+                    WeekdayDisplay = "周" + weekdays[(int)date.DayOfWeek],
+                    DurationDisplay = GameEntry.FormatDuration(seconds),
+                    BarWidth = width
+                });
+            }
+            SessionsList.ItemsSource = rows;
         }
 
         private void PrevMonth_Click(object sender, RoutedEventArgs e)
