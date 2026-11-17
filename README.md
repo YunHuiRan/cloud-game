@@ -24,7 +24,7 @@
 
 ## 发布包
 
-发布包位于 `release\CloudGame-2.1.0-win64.zip`；它是约 **450 KB** 的 framework-dependent .NET 8 发布包，不包含系统已安装的 .NET 8 Desktop Runtime。开发发布输出位于 `publish\win-x64\`。
+发布包位于 `release\CloudGame-2.1.0-win64.zip`；解压后运行所需的 framework-dependent .NET 8 文件约 **480 KB**，不包含系统已安装的 .NET 8 Desktop Runtime（完整 zip 还会包含中英文 README 与文档截图）。开发发布输出位于 `publish\win-x64\`。
 
 ## 环境
 

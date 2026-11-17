@@ -4,14 +4,11 @@ using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Markup;
-using Ludens.Infrastructure;
 
 namespace Ludens
 {
     public partial class App : Application
     {
-        public ServiceRegistry Services { get; private set; }
-
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -23,11 +20,8 @@ namespace Ludens
             AppDomain.CurrentDomain.UnhandledException += OnDomainException;
             DispatcherUnhandledException += OnDispatcherException;
 
-            Services = new ServiceRegistry();
             AppStore store = AppStore.Instance;
             LauncherService launcher = new LauncherService();
-            Services.AddSingleton(store);
-            Services.AddSingleton(launcher);
             for (int i = 0; i < store.Games.Count; i++)
             {
                 if (store.Games[i].ActiveSessionStartUtc.HasValue)

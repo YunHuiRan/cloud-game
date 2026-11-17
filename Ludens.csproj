@@ -32,4 +32,9 @@
     <SelfContained>false</SelfContained>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Resource Include="Assets\brand-64.png" />
+    <Resource Include="Assets\brand-256.png" />
+  </ItemGroup>
+
 </Project>

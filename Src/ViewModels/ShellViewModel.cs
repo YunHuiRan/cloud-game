@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
 using Ludens.Infrastructure;
@@ -12,21 +13,21 @@ namespace Ludens.ViewModels
     public sealed class ShellViewModel : ObservableObject
     {
         private readonly Window _window;
-        private string _pageTitle;
+        private readonly string _versionText;
 
         public ShellViewModel(Window window)
         {
             _window = window;
-            _pageTitle = "游戏库";
+            Version version = Assembly.GetExecutingAssembly().GetName().Version;
+            _versionText = "v" + (version == null ? "2.1.0" : version.ToString(3));
             MinimizeCommand = new RelayCommand(delegate { _window.WindowState = WindowState.Minimized; });
             ToggleMaximizeCommand = new RelayCommand(ToggleMaximize);
             CloseCommand = new RelayCommand(delegate { _window.Close(); });
         }
 
-        public string PageTitle
+        public string VersionText
         {
-            get { return _pageTitle; }
-            set { SetProperty(ref _pageTitle, value); }
+            get { return _versionText; }
         }
 
         public ICommand MinimizeCommand { get; private set; }

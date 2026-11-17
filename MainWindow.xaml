@@ -155,7 +155,7 @@
                                 <TextBlock x:Name="QuickThemeGlyph" Text="&#xE706;" FontFamily="{DynamicResource IconFont}"
                                            FontSize="14" Foreground="{DynamicResource TextSecondary}"/>
                             </Button>
-                            <TextBlock Text="v2.0.0" FontSize="9.5" Foreground="{DynamicResource TextMuted}"
+                            <TextBlock Text="{Binding VersionText}" FontSize="9.5" Foreground="{DynamicResource TextMuted}"
                                        VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,4,0"/>
                         </Grid>
                     </Grid>
