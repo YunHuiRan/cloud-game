@@ -13,7 +13,7 @@ Current version: **2.1.0**.
 ## Features
 
 - **Local library** — add `.exe` / `.bat` / `.cmd` files, or drag them straight into the window.
-- **Playtime tracking** — sessions, total playtime, last played, launch count, and live “running” indicators.
+- **Playtime tracking** — sessions, total playtime, last played, launch count, and live “running” indicators. The detail page includes a 12-week play calendar with accent-color intensity per day.
 - **Custom covers** — choose an image for each game, or let Cloud Game generate procedural cover art.
 - **Launcher background** — pick any image in Settings and adjust its dim level.
 - **Themes** — dark / light modes and six accent colors, with animated transitions.

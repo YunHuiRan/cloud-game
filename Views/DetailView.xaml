@@ -188,8 +188,80 @@
                             <ColumnDefinition Width="346"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0" Style="{DynamicResource PanelCard}" Padding="24,21,24,18" Margin="0,0,18,0">
-                            <StackPanel>
+                        <StackPanel Grid.Column="0" Margin="0,0,18,0">
+                            <Border Style="{DynamicResource PanelCard}" Padding="24,21,24,22">
+                                <StackPanel>
+                                    <Grid>
+                                        <TextBlock Text="游玩日历" Style="{DynamicResource SectionTitle}" FontSize="16"/>
+                                        <TextBlock x:Name="CalendarRangeText" Style="{DynamicResource Caption}"
+                                                   HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <TextBlock x:Name="CalendarSummaryText" Style="{DynamicResource Caption}" Margin="0,5,0,0"/>
+
+                                    <Grid Margin="0,16,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0">
+                                            <UniformGrid Columns="7" Width="196">
+                                                <TextBlock Text="一" Style="{DynamicResource Caption}" FontSize="9.5" TextAlignment="Center"/>
+                                                <TextBlock Text="二" Style="{DynamicResource Caption}" FontSize="9.5" TextAlignment="Center"/>
+                                                <TextBlock Text="三" Style="{DynamicResource Caption}" FontSize="9.5" TextAlignment="Center"/>
+                                                <TextBlock Text="四" Style="{DynamicResource Caption}" FontSize="9.5" TextAlignment="Center"/>
+                                                <TextBlock Text="五" Style="{DynamicResource Caption}" FontSize="9.5" TextAlignment="Center"/>
+                                                <TextBlock Text="六" Style="{DynamicResource Caption}" FontSize="9.5" TextAlignment="Center"/>
+                                                <TextBlock Text="日" Style="{DynamicResource Caption}" FontSize="9.5" TextAlignment="Center"/>
+                                            </UniformGrid>
+                                            <ItemsControl x:Name="CalendarDays" Width="196" Margin="0,4,0,0">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <UniformGrid Columns="7" Rows="12"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Width="24" Height="24" Margin="2" CornerRadius="5"
+                                                                Background="{DynamicResource Bg3}"
+                                                                BorderBrush="{Binding BorderBrush}" BorderThickness="1"
+                                                                Opacity="{Binding CellOpacity}"
+                                                                ToolTip="{Binding Tooltip}"
+                                                                ToolTipService.ShowDuration="30000">
+                                                            <Grid>
+                                                                <Border Background="{Binding Fill}" CornerRadius="4"/>
+                                                                <TextBlock Text="{Binding DayNumber}"
+                                                                           FontFamily="{DynamicResource MonoFont}" FontSize="9.5"
+                                                                           Foreground="{Binding TextBrush}"
+                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Margin="24,2,0,0" VerticalAlignment="Top">
+                                            <TextBlock Text="单日游玩时长" Style="{DynamicResource Caption}" Margin="0,0,0,9"/>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="少" Style="{DynamicResource Caption}" FontSize="9.5" Margin="0,0,7,0"/>
+                                                <Border Width="14" Height="14" CornerRadius="3" Background="{DynamicResource Accent}" Opacity="0.18" Margin="0,0,4,0"/>
+                                                <Border Width="14" Height="14" CornerRadius="3" Background="{DynamicResource Accent}" Opacity="0.34" Margin="0,0,4,0"/>
+                                                <Border Width="14" Height="14" CornerRadius="3" Background="{DynamicResource Accent}" Opacity="0.52" Margin="0,0,4,0"/>
+                                                <Border Width="14" Height="14" CornerRadius="3" Background="{DynamicResource Accent}" Opacity="0.74" Margin="0,0,4,0"/>
+                                                <Border Width="14" Height="14" CornerRadius="3" Background="{DynamicResource Accent}" Opacity="1" Margin="0,0,7,0"/>
+                                                <TextBlock Text="多" Style="{DynamicResource Caption}" FontSize="9.5"/>
+                                            </StackPanel>
+                                            <TextBlock Text="每格代表一天，颜色越深表示游玩时间越长。"
+                                                       Style="{DynamicResource Caption}" FontSize="10.5" TextWrapping="Wrap"
+                                                       MaxWidth="210" Margin="0,14,0,0"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Style="{DynamicResource PanelCard}" Padding="24,21,24,18" Margin="0,18,0,0">
+                                <StackPanel>
                                 <Grid Margin="0,0,0,10">
                                     <StackPanel Orientation="Horizontal">
                                         <TextBlock Text="游玩记录" Style="{DynamicResource SectionTitle}" FontSize="16"/>
@@ -234,6 +306,7 @@
                                 </StackPanel>
                             </StackPanel>
                         </Border>
+                        </StackPanel>
 
                         <Border Grid.Column="1" Style="{DynamicResource PanelCard}" Padding="24,21,24,22">
                             <StackPanel>
