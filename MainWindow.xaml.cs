@@ -8,13 +8,14 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using Ludens.ViewModels;
 
 namespace Ludens
 {
     public partial class MainWindow : Window
     {
-        private readonly AppStore _store = AppStore.Instance;
-        private readonly LauncherService _launcher = new LauncherService();
+        private readonly AppStore _store;
+        private readonly LauncherService _launcher;
         private readonly Dictionary<UserControl, TranslateTransform> _pageTransforms =
             new Dictionary<UserControl, TranslateTransform>();
         private readonly DispatcherTimer _liveTimer;
@@ -31,9 +32,14 @@ namespace Ludens
         private bool _ready;
         private bool _forceClose;
 
-        public MainWindow()
+        public MainWindow(AppStore store, LauncherService launcher)
         {
+            if (store == null) throw new ArgumentNullException("store");
+            if (launcher == null) throw new ArgumentNullException("launcher");
+            _store = store;
+            _launcher = launcher;
             InitializeComponent();
+            DataContext = new ShellViewModel(this);
 
             _pageTransforms[LibraryPage] = new TranslateTransform();
             _pageTransforms[StatsPage] = new TranslateTransform();

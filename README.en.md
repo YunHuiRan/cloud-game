@@ -2,7 +2,9 @@
 
 A lightweight local game library and launcher for Windows. Built with native **WPF / C#** — no Electron, WebView, or third-party runtime.
 
-`CloudGame.exe` is a single **~288 KiB** executable. Current version: **2.0.0**.
+Refactored on **.NET 8 WPF** with zero third-party UI/MVVM dependencies while retaining the existing pages, layout, native Windows features, and local data format.
+
+Current version: **2.1.0**.
 
 [中文说明](README.md)
 
@@ -25,8 +27,8 @@ A lightweight local game library and launcher for Windows. Built with native **W
 ## Requirements
 
 - Windows 10 / 11 x64
-- .NET Framework 4.8 (included with Windows 10 1903+ and Windows 11)
-- No installation required — run `CloudGame.exe`
+- .NET 8 Windows Desktop Runtime x64 (included with the .NET 8 SDK on development machines)
+- The framework-dependent package needs no application install; run `CloudGame.exe`
 
 ## Data location
 
@@ -39,7 +41,7 @@ Everything is stored locally:
 └── error.log         # created only when an exception occurs
 ```
 
-The import/export format is JSON with `format` set to `cloudgame.library`. Data from the old LUDENS version is not migrated automatically.
+The import/export format is JSON with `format` set to `cloudgame.library`. The refactor preserves the current `library.json` / `media\` paths and `DataContract` schema. Data from the old LUDENS version is not migrated automatically.
 
 ## Usage
 
@@ -71,16 +73,24 @@ The import/export format is JSON with `format` set to `cloudgame.library`. Data 
 
 ## Build from source
 
-The project targets .NET Framework 4.0 and builds with the MSBuild included with Windows:
+The project is an SDK-style .NET 8 WPF project. After installing the .NET 8 SDK, run this from the repository root:
 
 ```powershell
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe `
-  .\Ludens.csproj `
-  /p:Configuration=Release `
-  /p:TargetFrameworkDirectory="C:\Windows\Microsoft.NET\Framework64\v4.0.30319"
+dotnet restore .\Ludens.csproj -r win-x64
+dotnet build .\Ludens.csproj -c Release --no-restore
+dotnet publish .\Ludens.csproj -c Release -r win-x64 --self-contained false `
+  -o .\publish\win-x64 --no-restore
 ```
 
-Output: `bin\Release\CloudGame.exe`
+Output: `publish\win-x64\CloudGame.exe`
+
+### Data compatibility check
+
+The check only reads `%APPDATA%\CloudGame\library.json` and validates .NET 8 deserialization/round-trip serialization. It does not write user data:
+
+```powershell
+dotnet run --project .\tests\CloudGame.CompatibilityChecks\CloudGame.CompatibilityChecks.csproj -c Release
+```
 
 ## Project layout
 
@@ -90,7 +100,9 @@ App.xaml / App.xaml.cs  startup, themes, crash logging
 MainWindow.xaml         window shell, sidebar, page switching, overlays
 Views/                  Library / Detail / Stats / Settings / GameEditor / Confirm
 Src/                    AppStore, LauncherService, MediaService, ThemeManager,
-                        Motion, CoverArt, models
+                        Motion, CoverArt, models, zero-dependency MVVM infrastructure
+Src/ViewModels/         ShellViewModel (window commands; page logic migrates incrementally)
+tests/                  .NET 8 compatibility check for existing library.json
 Resources/Styles.xaml   colors, typography, buttons, inputs, scrollbars, menus
 Assets/                 icon and brand assets
 docs/screenshots/       documentation screenshots

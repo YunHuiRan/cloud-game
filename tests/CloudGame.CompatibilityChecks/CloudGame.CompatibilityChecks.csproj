@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="..\..\Src\AppPaths.cs" Link="AppPaths.cs" />
+    <Compile Include="..\..\Src\JsonHelper.cs" Link="JsonHelper.cs" />
+    <Compile Include="..\..\Src\Models.cs" Link="Models.cs" />
+  </ItemGroup>
+</Project>

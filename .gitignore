@@ -1,0 +1,12 @@
+# .NET build artifacts
+[Bb]in/
+[Oo]bj/
+
+# IDE and user-specific files
+.vs/
+*.user
+*.suo
+
+# Local publish output and data exports
+publish/
+*.cloudgame.json

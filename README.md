@@ -2,7 +2,7 @@
 
 一个轻量的 Windows 本地游戏库与启动器。使用原生 **WPF / C#** 编写，不依赖 Electron、WebView 或第三方运行时。
 
-`CloudGame.exe` 单文件约 **288 KiB（294 KB）**，当前版本 **2.0.0**。
+使用 **.NET 8 WPF** 与零第三方 UI / MVVM 依赖重构；保留原有页面、布局、Windows 原生功能和本地数据格式。
 
 [English README](README.en.md)
 
@@ -24,13 +24,13 @@
 
 ## 发布包
 
-免安装版位于 `release\CloudGame-2.0.0-win64.zip`，解压后直接运行 `CloudGame.exe`。压缩包内含中英文 README 和文档截图。
+发布包位于 `release\CloudGame-2.1.0-win64.zip`；它是约 **450 KB** 的 framework-dependent .NET 8 发布包，不包含系统已安装的 .NET 8 Desktop Runtime。开发发布输出位于 `publish\win-x64\`。
 
 ## 环境
 
 - Windows 10 / 11 x64
-- .NET Framework 4.8（Windows 10 1903+ 与 Windows 11 默认包含）
-- 无需安装，直接运行 `CloudGame.exe`
+- .NET 8 Windows Desktop Runtime x64（开发机安装 .NET 8 SDK 即包含）
+- framework-dependent 发布包无需安装应用本身，运行 `CloudGame.exe`
 
 ## 数据位置
 
@@ -43,7 +43,7 @@
 └── error.log         # 仅在出现异常时生成
 ```
 
-导入/导出格式为 JSON，`format` 为 `cloudgame.library`。旧版本的 LUDENS 数据不会自动迁移。
+导入/导出格式为 JSON，`format` 为 `cloudgame.library`。重构保留现有 `library.json` 与 `media\` 路径和 `DataContract` 数据契约；旧版本的 LUDENS 数据不会自动迁移。
 
 ## 使用
 
@@ -75,16 +75,24 @@
 
 ## 从源码构建
 
-项目使用 .NET Framework 4.0 目标，可直接用系统自带的 MSBuild 编译（无需安装 .NET SDK）：
+项目使用 SDK 风格的 .NET 8 WPF 工程。安装 .NET 8 SDK 后，在项目根目录执行：
 
 ```powershell
-C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe `
-  D:\Code\cloud-game\Ludens.csproj `
-  /p:Configuration=Release `
-  /p:TargetFrameworkDirectory="C:\Windows\Microsoft.NET\Framework64\v4.0.30319"
+dotnet restore .\Ludens.csproj -r win-x64
+dotnet build .\Ludens.csproj -c Release --no-restore
+dotnet publish .\Ludens.csproj -c Release -r win-x64 --self-contained false `
+  -o .\publish\win-x64 --no-restore
 ```
 
-输出：`bin\Release\CloudGame.exe`
+输出：`publish\win-x64\CloudGame.exe`
+
+### 数据兼容性检查
+
+此检查只读取 `%APPDATA%\CloudGame\library.json`，并验证 .NET 8 下的反序列化/往返序列化，不会改写用户数据：
+
+```powershell
+dotnet run --project .\tests\CloudGame.CompatibilityChecks\CloudGame.CompatibilityChecks.csproj -c Release
+```
 
 ## 结构
 
@@ -94,7 +102,9 @@ App.xaml / App.xaml.cs  启动、主题、异常日志
 MainWindow.xaml         窗口外壳、侧栏、页面切换、弹窗宿主
 Views/                  Library / Detail / Stats / Settings / GameEditor / Confirm
 Src/                    AppStore、LauncherService、MediaService、ThemeManager、
-                        Motion、SmoothScroll、CoverArt、数据模型
+                        Motion、CoverArt、数据模型、零依赖 MVVM 基础设施
+Src/ViewModels/         ShellViewModel（窗口命令；页面逻辑按阶段迁移）
+tests/                  现有 library.json 的 .NET 8 兼容性检查
 Resources/Styles.xaml   颜色、字体、按钮、输入框、滚动条、菜单样式
 Assets/                 图标与品牌图
 docs/screenshots/       README 截图

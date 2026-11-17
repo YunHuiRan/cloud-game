@@ -47,15 +47,15 @@
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top" Margin="0,12,10,0"
                             shell:WindowChrome.IsHitTestVisibleInChrome="True">
-                    <Button x:Name="MinimizeButton" Style="{DynamicResource WindowButton}" Click="Minimize_Click"
+                    <Button x:Name="MinimizeButton" Style="{DynamicResource WindowButton}" Command="{Binding MinimizeCommand}"
                             ToolTip="最小化">
                         <TextBlock Text="&#xE921;" FontFamily="{DynamicResource IconFont}" FontSize="10"/>
                     </Button>
-                    <Button x:Name="MaximizeButton" Style="{DynamicResource WindowButton}" Click="Maximize_Click"
+                    <Button x:Name="MaximizeButton" Style="{DynamicResource WindowButton}" Command="{Binding ToggleMaximizeCommand}"
                             ToolTip="最大化">
                         <TextBlock x:Name="MaximizeGlyph" Text="&#xE922;" FontFamily="{DynamicResource IconFont}" FontSize="10"/>
                     </Button>
-                    <Button x:Name="CloseButton" Style="{DynamicResource WindowCloseButton}" Click="Close_Click"
+                    <Button x:Name="CloseButton" Style="{DynamicResource WindowCloseButton}" Command="{Binding CloseCommand}"
                             ToolTip="关闭">
                         <TextBlock Text="&#xE8BB;" FontFamily="{DynamicResource IconFont}" FontSize="10"/>
                     </Button>
