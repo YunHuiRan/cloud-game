@@ -158,9 +158,13 @@ namespace Ludens.Views
                 Brush text = intensity >= 0.52
                     ? ThemeManager.Brush("AccentForeground")
                     : ThemeManager.Brush("TextPrimary");
-                Brush border = inMonth && date == today
-                    ? ThemeManager.Brush("Accent")
-                    : (inMonth ? ThemeManager.Brush("BorderStrong") : Brushes.Transparent);
+                Brush border;
+                if (!inMonth) border = Brushes.Transparent;
+                else if (date == today) border = ThemeManager.Brush("Accent");
+                else if (seconds > 0)
+                    border = new SolidColorBrush(Color.FromArgb(
+                        (byte)Math.Round(255 * Math.Max(0.32, intensity)), accent.R, accent.G, accent.B));
+                else border = ThemeManager.Brush("BorderStrong");
                 string durationText = inMonth && seconds > 0 ? GameEntry.FormatDuration(seconds) : string.Empty;
 
                 string label = date.ToString("yyyy年M月d日 dddd");
@@ -185,10 +189,12 @@ namespace Ludens.Views
 
             CalendarDays.ItemsSource = days;
             CalendarRangeText.Text = first.ToString("yyyy年M月");
-            CalendarSummaryText.Text = "本月 · 共 " + GameEntry.FormatDuration(totalSeconds);
 
             DateTime currentMonth = new DateTime(today.Year, today.Month, 1);
+            string summaryMonth = first == currentMonth ? "本月" : first.ToString("M月");
+            CalendarSummaryText.Text = summaryMonth + " · 共 " + GameEntry.FormatDuration(totalSeconds);
             NextMonthButton.IsEnabled = first < currentMonth;
+            ReturnToCurrentButton.Visibility = first == currentMonth ? Visibility.Collapsed : Visibility.Visible;
         }
 
         private Dictionary<DateTime, long> BuildDailyTotals()
@@ -260,6 +266,13 @@ namespace Ludens.Views
                 _calendarMonth = _calendarMonth.AddMonths(1);
                 BuildCalendar();
             }
+        }
+
+        private void ReturnToCurrent_Click(object sender, RoutedEventArgs e)
+        {
+            DateTime today = DateTime.Today;
+            _calendarMonth = new DateTime(today.Year, today.Month, 1);
+            BuildCalendar();
         }
 
         private static double Intensity(long seconds)
